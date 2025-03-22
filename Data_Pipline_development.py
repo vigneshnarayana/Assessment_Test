@@ -45,7 +45,24 @@ CREATE TABLE IF NOT EXISTS sales (
 )
 ''')
 
+
 # Insert data into the table
 df.to_sql('sales', conn, if_exists='replace', index=False)
 
-		
+""" Data Quality Checks"""
+
+# Check for duplicate transaction_ids
+if df['transaction_id'].duplicated().any():
+    print("Duplicate transaction_ids found!")
+# Log anomalies:
+with open('anomalies.log', 'w') as log_file:
+    if df['customer_id'].isnull().any():
+        log_file.write("Missing customer_id found.\n")
+    if (df['quantity'] < 0).any():
+        log_file.write("Negative quantity found.\n")
+        
+# Performance Optimization
+
+# 1.Optimize Data Loading
+df.to_sql('sales', conn, if_exists='replace', index=False, chunksize=1000)
+
